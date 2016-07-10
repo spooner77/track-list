@@ -1,5 +1,7 @@
 var React = require('react');
 var ArtistFilter = require('./ArtistFilter');
+var GenreFilter = require('./GenreFilter');
+var YearFilter = require('./YearFilter');
 
 var TrackFilter = React.createClass({
   render: function() {
@@ -8,6 +10,8 @@ var TrackFilter = React.createClass({
             <h3>Filter</h3>
             <form>
                 <ArtistFilter />
+                <GenreFilter />
+                <YearFilter />
             </form>
         </div>
     )

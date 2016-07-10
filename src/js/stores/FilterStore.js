@@ -100,6 +100,7 @@ FilterStore.dispatchToken = AppDispatcher.register(function(payload){
         else {
           FilterStore.addFilter(key,value);
         }
+        FilterStore.emitChange();
   			break;
 		default:
 			// do nothing

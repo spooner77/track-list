@@ -6,19 +6,19 @@ var AppActions = require('../actions/AppActions');
 
 function getStateFromStore() {
   return {
-    value: FilterStore.getFilter("Artist"),
-    options: FilterStore.getArtistOptions(),
+    value: FilterStore.getFilter("Genre"),
+    options: FilterStore.getGenreOptions(),
   };
 };
 
-var ArtistFilter = React.createClass({
+var GenresFilter = React.createClass({
 
   getInitialState: function() {
     return getStateFromStore();
   },
 
   valueChange: function(event) {
-    AppActions.changeFilter("Artist", event.target.value);
+    AppActions.changeFilter("Genre", event.target.value);
   },
 
   render: function() {
@@ -32,8 +32,8 @@ var ArtistFilter = React.createClass({
 
     return (
         <fieldset className="form-group">
-            <label htmlFor="artist-filter">Artist</label>
-            <select id="artist-filter" className="form-control" name="Artist" value={this.state.value} onChange={this.valueChange} >
+            <label htmlFor="genre-filter">Genre</label>
+            <select id="genre-filter" className="form-control" name="Genre" value={this.state.value} onChange={this.valueChange} >
               {options}
             </select>
         </fieldset>
@@ -52,4 +52,4 @@ var ArtistFilter = React.createClass({
   }
 });
 
-module.exports = ArtistFilter;
+module.exports = GenresFilter;

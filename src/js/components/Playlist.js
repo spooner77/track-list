@@ -9,19 +9,23 @@ function getStateFromStore() {
   };
 };
 
-function getTrackItem(item, index) {
-  return (
-    <Track key={index} track={item} />
-  );
-};
-
 var Playlist = React.createClass({
   getInitialState: function() {
     return getStateFromStore();
   },
 
   render: function() {
-    var rows = this.state.list.map(getTrackItem);
+    var rows = []
+    if ( !this.state.list.length )
+      rows.push(<tr><td key="no_items" colSpan="5" className="text-center">No tracks</td></tr>);
+    else {
+      rows = this.state.list.map(function(item, index) {
+        return (
+          <Track key={index} track={item} />
+        );
+      });
+    }
+
     return (
         <div className="col-md-8">
             <h3>Playlist</h3>

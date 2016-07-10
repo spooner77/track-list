@@ -6,19 +6,19 @@ var AppActions = require('../actions/AppActions');
 
 function getStateFromStore() {
   return {
-    value: FilterStore.getFilter("Artist"),
-    options: FilterStore.getArtistOptions(),
+    value: FilterStore.getFilter("Year"),
+    options: FilterStore.getYearOptions(),
   };
 };
 
-var ArtistFilter = React.createClass({
+var YearFilter = React.createClass({
 
   getInitialState: function() {
     return getStateFromStore();
   },
 
   valueChange: function(event) {
-    AppActions.changeFilter("Artist", event.target.value);
+    AppActions.changeFilter("Year", event.target.value);
   },
 
   render: function() {
@@ -32,8 +32,8 @@ var ArtistFilter = React.createClass({
 
     return (
         <fieldset className="form-group">
-            <label htmlFor="artist-filter">Artist</label>
-            <select id="artist-filter" className="form-control" name="Artist" value={this.state.value} onChange={this.valueChange} >
+            <label htmlFor="year-filter">Year</label>
+            <select id="year-filter" className="form-control" name="Year" value={this.state.value} onChange={this.valueChange} >
               {options}
             </select>
         </fieldset>
@@ -52,4 +52,4 @@ var ArtistFilter = React.createClass({
   }
 });
 
-module.exports = ArtistFilter;
+module.exports = YearFilter;
