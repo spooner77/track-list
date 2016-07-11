@@ -1,20 +1,25 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher');
-var AppConstants = require('../constants/AppConstants');
+var ActionConstants = require('../constants/ActionConstants');
 
 var AppActions = {
-  changeFilter: function(filterKey, value){
+  changeFilter: function(filterKey, value) {
     AppDispatcher.handleViewAction({
-      actionType:AppConstants.USER_CHANGE_FILTER,
+      actionType:ActionConstants.CHANGE_FILTER,
       filterKey: filterKey,
       value: value
     });
   },
-
-  loadData: function(data){
-      AppDispatcher.handleViewAction({
-        actionType:AppConstants.LOAD_DATA,
-        data: data
-      });
+  loadData: function(data) {
+    AppDispatcher.handleViewAction({
+      actionType:ActionConstants.LOAD_DATA,
+      data: data
+    });
+  },
+  changeOrder: function(target) {
+    AppDispatcher.handleViewAction({
+      actionType:ActionConstants.CHANGE_ORDER,
+      target: target
+    });
   }
 }
 

@@ -1,14 +1,18 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var _ = require('underscore');
-var AppConstants = require('../constants/AppConstants');
+var ActionConstants = require('../constants/ActionConstants');
 var FilterStore = require('./FilterStore');
-var assign = require('object-assign');
+var Assign = require('object-assign');
 
 
 var CHANGE_EVENT = 'change';
+var ORDER_ASC = 'asc';
+var ORDER_DESC = 'desc';
+
 var items = [];
-var filter = {};
+var orderTarget = null;
+var order = ORDER_ASC;
 
 function loadData(data) {
   data.forEach(function(item) {
@@ -30,7 +34,36 @@ function loadData(data) {
   );
 };
 
-var TrackStore = assign({}, EventEmitter.prototype, {
+function setOrder(target) {
+  if ( orderTarget == target )
+  {
+    switch(order)
+    {
+      case ORDER_ASC:
+        // change sort order if select same target
+        order = ORDER_DESC;
+        break;
+      case ORDER_DESC:
+        // clear the sort order if user choose the same target twice
+        orderTarget = null;
+        order = ORDER_ASC;
+        break;
+    }
+  }
+  else {
+    orderTarget = target;
+    order = ORDER_ASC;
+  }
+}
+
+var TrackStore = Assign({}, EventEmitter.prototype, {
+  ARTIST_FIELD: 'Artist',
+  SONG_FIELD: 'Song',
+  GENRE_FIELD: 'Genre',
+  YEAR_FIELD: 'Year',
+  TIME_FIELD: 'Time',
+  ORDER_ASC:ORDER_ASC,
+  ORDER_DESC:ORDER_DESC,
 
   emitChange: function() {
     this.emit(CHANGE_EVENT);
@@ -40,31 +73,45 @@ var TrackStore = assign({}, EventEmitter.prototype, {
     this.on(CHANGE_EVENT, callback);
   },
 
-  getOriginalItems: function() {
-  	return items;
+  getFieldList: function() {
+    return [this.ARTIST_FIELD, this.SONG_FIELD, this.GENRE_FIELD, this.YEAR_FIELD, this.TIME_FIELD];
   },
 
-  getFilteredItems: function(filter, sort, first, count) {
+  getFilteredItems: function(filter, first, count) {
     var result = _.where(items, filter);
 
-    result.sort(function(val1, val2) {
-      val1.Artist.localeCompare(val2.Artist)
-    });
+    if ( orderTarget && this.getFieldList().indexOf(orderTarget) != -1 ) {
+      result.sort(function(val1, val2) {
+        return (val1[orderTarget]).localeCompare(val2[orderTarget]) * ( order == ORDER_DESC ? -1 : 1 );
+      });
+    }
 
     return result.slice(first, count);
+  },
+
+  getOrderTarget: function() {
+    return orderTarget;
+  },
+
+  getOrder: function() {
+    return order;
   }
 });
 
 TrackStore.dispatchToken = AppDispatcher.register(function(payload){
 	var action = payload.action;
 	switch(action.actionType) {
-		case AppConstants.LOAD_DATA:
+		case ActionConstants.LOAD_DATA:
 			loadData(action.data);
       AppDispatcher.waitFor([FilterStore.dispatchToken]);
 			TrackStore.emitChange();
 			break;
-    case AppConstants.USER_CHANGE_FILTER:
+    case ActionConstants.CHANGE_FILTER:
       AppDispatcher.waitFor([FilterStore.dispatchToken]);
+      TrackStore.emitChange();
+      break;
+    case ActionConstants.CHANGE_ORDER:
+      setOrder(action.target);
       TrackStore.emitChange();
       break;
 		default:

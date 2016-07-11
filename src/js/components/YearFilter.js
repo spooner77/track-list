@@ -1,7 +1,6 @@
 var React = require('react');
-
+var TrackStore = require('../stores/TrackStore');
 var FilterStore = require('../stores/FilterStore');
-var AppUtils = require('../utils/AppUtils');
 var AppActions = require('../actions/AppActions');
 
 function getStateFromStore() {
@@ -18,7 +17,7 @@ var YearFilter = React.createClass({
   },
 
   valueChange: function(event) {
-    AppActions.changeFilter("Year", event.target.value);
+    AppActions.changeFilter(TrackStore.YEAR_FIELD, event.target.value);
   },
 
   render: function() {
@@ -26,8 +25,7 @@ var YearFilter = React.createClass({
     options.push(<option key="all" value="" >All</option>);
 
     this.state.options.forEach( function(option, index) {
-      var hash = AppUtils.generateHash(option);
-       options.push(<option key={index} value={option} >{option}</option>);
+       options.push(<option key={option.id} value={option.item} >{option.item}</option>);
      } );
 
     return (

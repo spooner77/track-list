@@ -1,8 +1,9 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var _ = require('underscore');
-var AppConstants = require('../constants/AppConstants');
-var assign = require('object-assign');
+var ActionConstants = require('../constants/ActionConstants');
+var Assign = require('object-assign');
+var Hash = require('object-hash');
 
 
 var CHANGE_EVENT = 'change';
@@ -12,22 +13,21 @@ var ArtistList = [];
 var GenreList= [];
 var YearList = [];
 
-var addListStoreItem = function(store, item) {
-  if ( item && _.isString(item) && store.indexOf(item) == -1 )
+function addListStoreItem(store, item) {
+  if ( item && _.isString(item) && _.findIndex(store, {item:item}) == -1 )
   {
-    store.push(item);
+      store.push({id:Hash.MD5(item), item:item});
   }
-  return false;
 };
 
-var loadData = function(data) {
+function loadData(data) {
   data.forEach(function(item) {
       if ( !item )
         return;
 
-      addListStoreItem(ArtistList, item.Artist);
-      addListStoreItem(GenreList, item.Genre);
-      addListStoreItem(YearList, item.Year);
+        addListStoreItem(ArtistList, item.Artist);
+        addListStoreItem(GenreList, item.Genre);
+        addListStoreItem(YearList, item.Year);
     });
 
     ArtistList.sort();
@@ -35,14 +35,14 @@ var loadData = function(data) {
     YearList.sort();
 };
 
-var clean = function() {
+function clean() {
   filter = {};
   ArtistList = [];
   GenreList= [];
   YearList = [];
 };
 
-var FilterStore = assign({}, EventEmitter.prototype, {
+var FilterStore = Assign({}, EventEmitter.prototype, {
   emitChange: function() {
     this.emit(CHANGE_EVENT);
   },
@@ -86,12 +86,12 @@ var FilterStore = assign({}, EventEmitter.prototype, {
 FilterStore.dispatchToken = AppDispatcher.register(function(payload){
 	var action = payload.action;
 	switch(action.actionType) {
-		case AppConstants.LOAD_DATA:
+		case ActionConstants.LOAD_DATA:
 			clean();
-      loadData(action.data)
+      loadData(action.data);
 			FilterStore.emitChange();
 			break;
-    case AppConstants.USER_CHANGE_FILTER:
+    case ActionConstants.CHANGE_FILTER:
         var key = action.filterKey;
         var value = action.value;
         if ( !value ) {

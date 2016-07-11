@@ -1,6 +1,10 @@
 var React = require('react');
 
 var Track = React.createClass({
+  propTypes: {
+      track: React.PropTypes.object
+    },
+
   formatTime: function (str) {
       var sec_num = parseInt(str, 10);
       var hours   = Math.floor(sec_num / 3600);
@@ -16,6 +20,7 @@ var Track = React.createClass({
 
       return hours+minutes+':'+seconds;
   },
+
   render: function() {
     var time = this.formatTime(this.props.track.Time);
     return (

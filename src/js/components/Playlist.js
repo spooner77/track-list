@@ -1,11 +1,16 @@
 var React = require('react');
 var Track = require('./Track');
+var PlaylistHeader = require('./PlaylistHeader');
 var TrackStore = require('../stores/TrackStore');
 var FilterStore = require('../stores/FilterStore');
+var AppActions = require('../actions/AppActions');
 
 function getStateFromStore() {
   return {
-    list: TrackStore.getFilteredItems(FilterStore.getAllFilters(), {}, 0, 30)
+    trackList: TrackStore.getFilteredItems(FilterStore.getAllFilters(), 0, 30),
+    fieldList: TrackStore.getFieldList(),
+    target:TrackStore.getOrderTarget(),
+    order:TrackStore.getOrder()
   };
 };
 
@@ -16,12 +21,12 @@ var Playlist = React.createClass({
 
   render: function() {
     var rows = []
-    if ( !this.state.list.length )
+    if ( !this.state.trackList.length )
       rows.push(<tr><td key="no_items" colSpan="5" className="text-center">No tracks</td></tr>);
     else {
-      rows = this.state.list.map(function(item, index) {
+      rows = this.state.trackList.map(function(item) {
         return (
-          <Track key={index} track={item} />
+          <Track key={item.id} track={item} />
         );
       });
     }
@@ -31,30 +36,12 @@ var Playlist = React.createClass({
             <h3>Playlist</h3>
             <div className="table-responsive">
                 <table className="table table-striped playlist">
-                    <thead>
-                        <tr>
-                            <th>
-                                Artist
-                                <span className="glyphicon glyphicon-sort-by-attributes pull-right" aria-hidden="true"></span>
-                            </th>
-                            <th>
-                                Song
-                                <span className="glyphicon glyphicon-sort-by-attributes-alt pull-right" aria-hidden="true"></span>
-                            </th>
-                            <th>
-                                Genre
-                                <span className="glyphicon glyphicon-sort pull-right" aria-hidden="true"></span>
-                            </th>
-                            <th>
-                                Year
-                                <span className="glyphicon glyphicon-sort pull-right" aria-hidden="true"></span>
-                            </th>
-                            <th>
-                                Time
-                                <span className="glyphicon glyphicon-sort pull-right" aria-hidden="true"></span>
-                            </th>
-                        </tr>
-                    </thead>
+                    <PlaylistHeader
+                      fieldList={this.state.fieldList}
+                      target={this.state.orderTarget}
+                      order={this.state.order}
+                      handleClick={this.handlePlaylistHeaderClick}
+                    />
                     <tbody>
                         {rows}
                     </tbody>
@@ -62,6 +49,10 @@ var Playlist = React.createClass({
             </div>
         </div>
     )
+  },
+
+  handlePlaylistHeaderClick: function(target) {
+    AppActions.changeOrder(target);
   },
 
   componentDidMount: function() {
