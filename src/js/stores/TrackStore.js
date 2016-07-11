@@ -82,7 +82,18 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
 
     if ( orderTarget && this.getFieldList().indexOf(orderTarget) != -1 ) {
       result.sort(function(val1, val2) {
-        return (val1[orderTarget]).localeCompare(val2[orderTarget]) * ( order == ORDER_DESC ? -1 : 1 );
+        var v1 = val1[orderTarget];
+        var v2 = val2[orderTarget];
+        var val = 0;
+
+        if ( _.isString(v1) && _.isString(v2) )
+          val = (val1[orderTarget]).localeCompare(val2[orderTarget]);
+        else if ( v1 > v2 )
+          val = 1;
+        else if ( v1 < v2 )
+          val = -1;
+
+        return val * ( order == ORDER_DESC ? -1 : 1 );
       });
     }
 

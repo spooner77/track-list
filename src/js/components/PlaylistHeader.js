@@ -4,37 +4,30 @@ var ClassNames = require('classnames');
 var TrackStore = require('../stores/TrackStore');
 var AppActions = require('../actions/AppActions');
 
-function getStateFromStore(component) {
+function getStateFromStore() {
   return {
-    fieldList: component.props.fieldList,
-    target: component.props.traget,
-    order: component.props.order
+    fieldList: TrackStore.getFieldList(),
+    target:TrackStore.getOrderTarget(),
+    order:TrackStore.getOrder()
   };
 };
 
 var PlaylistHeader = React.createClass({
-
-  propTypes: {
-      fieldList: React.PropTypes.array,
-      target: React.PropTypes.string,
-      order: React.PropTypes.string,
-      handleClick: React.PropTypes.func
-  },
 
   getInitialState: function() {
     return getStateFromStore(this);
   },
 
   handleClick: function(item) {
-    this.props.handleClick(item);
+    AppActions.changeOrder(item);
   },
 
   render: function() {
     var rows = [];
 
-    if ( this.props.fieldList.length )
+    if ( this.state.fieldList.length )
     {
-      rows = this.props.fieldList.map(this._renderItem);
+      rows = this.state.fieldList.map(this._renderItem);
     }
 
     return (
@@ -51,7 +44,7 @@ var PlaylistHeader = React.createClass({
       'glyphicon': true,
       'pull-right': true
     };
-    classList[this.getIconClass(item, this.props.order)] = true;
+    classList[this.getIconClass(item, this.state.order)] = true;
 
     var classes = ClassNames(classList);
 
@@ -64,7 +57,7 @@ var PlaylistHeader = React.createClass({
   },
 
   getIconClass: function(target, order) {
-    if ( this.props.traget == target )
+    if ( this.state.target == target )
     {
       switch(order)
       {
@@ -78,8 +71,16 @@ var PlaylistHeader = React.createClass({
     return 'glyphicon-sort';
   },
 
-  shouldComponentUpdate: function(nextProps, nextState) {
-    return nextProps.target !== this.props.target || nextProps.order !== this.props.order;
+  componentDidMount: function() {
+    TrackStore.addChangeListener(this._onChaged);
+  },
+
+  componentWillUnmount: function() {
+    TrackStore.removeChangeListener(this._onChaged);
+  },
+
+  _onChaged: function() {
+    this.setState(getStateFromStore());
   }
 });
 

@@ -7,10 +7,7 @@ var AppActions = require('../actions/AppActions');
 
 function getStateFromStore() {
   return {
-    trackList: TrackStore.getFilteredItems(FilterStore.getAllFilters(), 0, 30),
-    fieldList: TrackStore.getFieldList(),
-    target:TrackStore.getOrderTarget(),
-    order:TrackStore.getOrder()
+    trackList: TrackStore.getFilteredItems(FilterStore.getAllFilters(), 0, 30)
   };
 };
 
@@ -22,7 +19,7 @@ var Playlist = React.createClass({
   render: function() {
     var rows = []
     if ( !this.state.trackList.length )
-      rows.push(<tr><td key="no_items" colSpan="5" className="text-center">No tracks</td></tr>);
+      rows.push(<tr key="no_items"><td colSpan="5" className="text-center">No tracks</td></tr>);
     else {
       rows = this.state.trackList.map(function(item) {
         return (
@@ -36,12 +33,7 @@ var Playlist = React.createClass({
             <h3>Playlist</h3>
             <div className="table-responsive">
                 <table className="table table-striped playlist">
-                    <PlaylistHeader
-                      fieldList={this.state.fieldList}
-                      target={this.state.orderTarget}
-                      order={this.state.order}
-                      handleClick={this.handlePlaylistHeaderClick}
-                    />
+                    <PlaylistHeader />
                     <tbody>
                         {rows}
                     </tbody>
@@ -49,10 +41,6 @@ var Playlist = React.createClass({
             </div>
         </div>
     )
-  },
-
-  handlePlaylistHeaderClick: function(target) {
-    AppActions.changeOrder(target);
   },
 
   componentDidMount: function() {
@@ -65,7 +53,7 @@ var Playlist = React.createClass({
 
   _onChaged: function() {
     this.setState(getStateFromStore());
-  },
+  }
 });
 
 module.exports = Playlist;
