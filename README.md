@@ -2,7 +2,7 @@ Music track list app
 
 Installation
 
-    git clone https://github.com/spooner77/music-track-list.git
+    git clone https://github.com/spooner77/track-list.git
     cd music-track-list
     npm install
     gulp
