@@ -1,13 +1,15 @@
 var React = require('react');
-var Track = require('./Track');
 var PlaylistHeader = require('./PlaylistHeader');
 var TrackStore = require('../stores/TrackStore');
 var FilterStore = require('../stores/FilterStore');
 var AppActions = require('../actions/AppActions');
+var Track = require('./Track');
+var Pagination = require('./Pagination');
+var ItemsPerPage = require('./ItemsPerPage');
 
 function getStateFromStore() {
   return {
-    trackList: TrackStore.getFilteredItems(FilterStore.getAllFilters(), 0, 30)
+    trackList: TrackStore.getItems()
   };
 };
 
@@ -18,9 +20,9 @@ var Playlist = React.createClass({
 
   render: function() {
     var rows = []
-    if ( !this.state.trackList.length )
+    if ( !this.state.trackList.length ) {
       rows.push(<tr key="no_items"><td colSpan="5" className="text-center">No tracks</td></tr>);
-    else {
+    } else {
       rows = this.state.trackList.map(function(item) {
         return (
           <Track key={item.id} track={item} />
@@ -38,6 +40,12 @@ var Playlist = React.createClass({
                         {rows}
                     </tbody>
                 </table>
+                <div className="text-center">
+                  <Pagination />
+                  <div className="btn-group btn-group-lg pull-right">
+                    <ItemsPerPage />
+                  </div>
+                </div>
             </div>
         </div>
     )

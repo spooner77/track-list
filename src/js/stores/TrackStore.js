@@ -10,11 +10,23 @@ var CHANGE_EVENT = 'change';
 var ORDER_ASC = 'asc';
 var ORDER_DESC = 'desc';
 
+// original data
 var items = [];
+
+// filterd items
+var filteredItems = [];
+
+// order
 var orderTarget = null;
 var order = ORDER_ASC;
 
+// pagination data
+var page = 1;
+var itemsPrePage = 10;
+var itemsPrePageList = [10, 20, 30];
+
 function loadData(data) {
+  page = 1;
   data.forEach(function(item) {
       if ( !item )
         return;
@@ -28,10 +40,23 @@ function loadData(data) {
       track.Time = parseInt(item.Time,10);
 
       items.push(track);
-
-      TrackStore.emitChange()
     }
   );
+  filteredItems = items.slice();
+};
+
+function setFilter(filter) {
+  page = 1;
+  filteredItems = _.where(items, filter);
+};
+
+function setPage(p) {
+  page = p;
+};
+
+function setItemsPrePageCount(count) {
+  page = 1;
+  itemsPrePage = count;
 };
 
 function setOrder(target) {
@@ -73,12 +98,14 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
     this.on(CHANGE_EVENT, callback);
   },
 
+
   getFieldList: function() {
     return [this.ARTIST_FIELD, this.SONG_FIELD, this.GENRE_FIELD, this.YEAR_FIELD, this.TIME_FIELD];
   },
 
-  getFilteredItems: function(filter, first, count) {
-    var result = _.where(items, filter);
+  // get playlist items
+  getItems: function() {
+    var result = filteredItems.slice();
 
     if ( orderTarget && this.getFieldList().indexOf(orderTarget) != -1 ) {
       result.sort(function(val1, val2) {
@@ -97,9 +124,31 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
       });
     }
 
-    return result.slice(first, count);
+    return result.slice((page-1)*this.getItemsPrePageCount(), page*this.getItemsPrePageCount());
   },
 
+  getItemsCount: function() {
+    return filteredItems.length;
+  },
+
+  // pagination
+  getPage: function() {
+    return page;
+  },
+
+  getPagesCount: function() {
+    return Math.ceil(this.getItemsCount() / this.getItemsPrePageCount());
+  },
+
+  getItemsPrePageCount: function() {
+    return itemsPrePage;
+  },
+
+  getItemsPrePageList: function() {
+    return itemsPrePageList;
+  },
+
+  // order
   getOrderTarget: function() {
     return orderTarget;
   },
@@ -110,23 +159,42 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
 });
 
 TrackStore.dispatchToken = AppDispatcher.register(function(payload){
-	var action = payload.action;
-	switch(action.actionType) {
-		case ActionConstants.LOAD_DATA:
-			loadData(action.data);
-      AppDispatcher.waitFor([FilterStore.dispatchToken]);
-			TrackStore.emitChange();
-			break;
-    case ActionConstants.CHANGE_FILTER:
-      AppDispatcher.waitFor([FilterStore.dispatchToken]);
-      TrackStore.emitChange();
-      break;
-    case ActionConstants.CHANGE_ORDER:
-      setOrder(action.target);
-      TrackStore.emitChange();
-      break;
-		default:
-			// do nothing
+    var action = payload.action;
+    switch(action.actionType) {
+
+      case ActionConstants.LOAD_DATA:
+        loadData(action.data);
+        AppDispatcher.waitFor([FilterStore.dispatchToken]);
+        TrackStore.emitChange();
+        break;
+
+      case ActionConstants.CHANGE_FILTER:
+        AppDispatcher.waitFor([FilterStore.dispatchToken]);
+        setFilter(FilterStore.getAllFilters());
+        TrackStore.emitChange();
+        break;
+
+      case ActionConstants.CHANGE_ORDER:
+        setOrder(action.target);
+        TrackStore.emitChange();
+        break;
+
+      case ActionConstants.CHANGE_PAGE:
+        if ( TrackStore.getPagesCount() >= action.page ) {
+          setPage(action.page);
+          TrackStore.emitChange();
+        }
+        break;
+
+      case ActionConstants.CHANGE_ITEMS_PER_PAGE_COUNT:
+        if ( TrackStore.getItemsPrePageList().indexOf(action.count) != -1 ) {
+          setItemsPrePageCount(action.count);
+          TrackStore.emitChange();
+        }
+        break;
+
+      default:
+        // do nothing
   }
 });
 

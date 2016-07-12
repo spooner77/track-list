@@ -84,27 +84,32 @@ var FilterStore = Assign({}, EventEmitter.prototype, {
 });
 
 FilterStore.dispatchToken = AppDispatcher.register(function(payload){
-	var action = payload.action;
-	switch(action.actionType) {
-		case ActionConstants.LOAD_DATA:
-			clean();
-      loadData(action.data);
-			FilterStore.emitChange();
-			break;
-    case ActionConstants.CHANGE_FILTER:
+    var action = payload.action;
+    switch(action.actionType) {
+
+      case ActionConstants.LOAD_DATA:
+        clean();
+        loadData(action.data);
+        FilterStore.emitChange();
+        break;
+
+      case ActionConstants.CHANGE_FILTER:
         var key = action.filterKey;
         var value = action.value;
+
         if ( !value ) {
           FilterStore.removeFilter(key);
         }
         else {
           FilterStore.addFilter(key,value);
         }
+
         FilterStore.emitChange();
-  			break;
-		default:
-			// do nothing
-  }
+        break;
+
+      default:
+      // do nothing
+    }
 });
 
 module.exports = FilterStore;
