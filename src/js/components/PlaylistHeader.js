@@ -1,6 +1,5 @@
 var React = require('react');
 var Track = require('./Track');
-var ClassNames = require('classnames');
 var TrackStore = require('../stores/TrackStore');
 var AppActions = require('../actions/AppActions');
 
@@ -40,13 +39,7 @@ var PlaylistHeader = React.createClass({
   },
 
   _renderItem: function(item, index) {
-    var classList = {
-      'glyphicon': true,
-      'pull-right': true
-    };
-    classList[this.getIconClass(item, this.state.order)] = true;
-
-    var classes = ClassNames(classList);
+    var classes = "glyphicon pull-right " + this.getIconClass(item, this.state.order);
 
     return (
       <th key={item} onClick={this.handleClick.bind(null, item)}>

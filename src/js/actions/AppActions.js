@@ -15,6 +15,20 @@ var AppActions = {
       data: data
     });
   },
+  changePage: function(page) {
+    AppDispatcher.handleViewAction({
+      actionType:ActionConstants.CHANGE_PAGE,
+      page: page
+    });
+  },
+
+  changePageItemsCount: function(count) {
+    AppDispatcher.handleViewAction({
+      actionType:ActionConstants.CHANGE_ITEMS_PER_PAGE_COUNT,
+      count: count
+    });
+  },
+
   changeOrder: function(target) {
     AppDispatcher.handleViewAction({
       actionType:ActionConstants.CHANGE_ORDER,
