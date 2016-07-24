@@ -1,29 +1,46 @@
 var React = require('react');
 var PlaylistHeader = require('./PlaylistHeader');
 var TrackStore = require('../stores/TrackStore');
-var FilterStore = require('../stores/FilterStore');
 var AppActions = require('../actions/AppActions');
 var Track = require('./Track');
 var Pagination = require('./Pagination');
 var ItemsPerPage = require('./ItemsPerPage');
 
-function getStateFromStore() {
-  return {
-    trackList: TrackStore.getItems()
-  };
-};
-
 var Playlist = React.createClass({
-  getInitialState: function() {
-    return getStateFromStore();
+  propTypes: {
+    trackList: React.PropTypes.array,
+    // playlist header
+    fieldList: React.PropTypes.array,
+    orderTarget: React.PropTypes.string,
+    order: React.PropTypes.string,
+    // pagination
+    perPage: React.PropTypes.number,
+    itemsCount: React.PropTypes.number,
+    itemsPerPageList: React.PropTypes.array,
+    page: React.PropTypes.number
+  },
+
+  handlePageClick: function(item) {
+    if ( item == this.props.page || item <= 0 || item > this.props.pageCount ) {
+      return;
+    }
+    AppActions.changePage(item);
+  },
+
+  handleItemsCountClick: function(item) {
+    AppActions.changePageItemsCount(item);
+  },
+
+  handleHeaderClick: function(item) {
+    AppActions.changeOrder(item);
   },
 
   render: function() {
     var rows = []
-    if ( !this.state.trackList.length ) {
+    if ( !this.props.trackList.length ) {
       rows.push(<tr key="no_items"><td colSpan="5" className="text-center">No tracks</td></tr>);
     } else {
-      rows = this.state.trackList.map(function(item) {
+      rows = this.props.trackList.map(function(item) {
         return (
           <Track key={item.id} track={item} />
         );
@@ -35,32 +52,31 @@ var Playlist = React.createClass({
             <h3>Playlist</h3>
             <div className="table-responsive">
                 <table className="table table-striped playlist">
-                    <PlaylistHeader />
+                    <PlaylistHeader
+                      fieldList={this.props.fieldList}
+                      target={this.props.orderTarget}
+                      order={this.props.order}
+                      handleClick={this.handleHeaderClick}  />
                     <tbody>
                         {rows}
                     </tbody>
                 </table>
                 <div className="text-center">
-                  <Pagination />
+                  <Pagination
+                    page={this.props.page}
+                    pagesCount={Math.ceil(this.props.itemsCount / this.props.perPage)}
+                    handlePageClick={this.handlePageClick} />
                   <div className="btn-group btn-group-lg pull-right">
-                    <ItemsPerPage />
+                    <ItemsPerPage
+                      itemsCount={this.props.itemsCount}
+                      perPage={this.props.perPage}
+                      itemsPerPageList={this.props.itemsPerPageList}
+                      handleItemsCountClick={this.handleItemsCountClick} />
                   </div>
                 </div>
             </div>
         </div>
     )
-  },
-
-  componentDidMount: function() {
-    TrackStore.addChangeListener(this._onChaged);
-  },
-
-  componentWillUnmount: function() {
-    TrackStore.removeChangeListener(this._onChaged);
-  },
-
-  _onChaged: function() {
-    this.setState(getStateFromStore());
   }
 });
 

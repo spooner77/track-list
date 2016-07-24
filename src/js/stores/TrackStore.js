@@ -2,8 +2,8 @@ var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var _ = require('underscore');
 var ActionConstants = require('../constants/ActionConstants');
-var FilterStore = require('./FilterStore');
 var Assign = require('object-assign');
+var Hash = require('object-hash');
 
 
 var CHANGE_EVENT = 'change';
@@ -16,21 +16,34 @@ var items = [];
 // filterd items
 var filteredItems = [];
 
+// filter data
+var filter = {};
+var ArtistList = [];
+var GenreList= [];
+var YearList = [];
+
 // order
 var orderTarget = null;
 var order = ORDER_ASC;
 
 // pagination data
 var page = 1;
-var itemsPrePage = 10;
-var itemsPrePageList = [10, 20, 30];
+var itemsPerPage = 10;
+var itemsPerPageList = [10, 20, 30];
 
+/**
+ * load data to store
+ * @param {Object[]} data
+ */
 function loadData(data) {
   page = 1;
+  cleanFilter();
+
   data.forEach(function(item) {
       if ( !item )
         return;
 
+      // add track to original data storage
       var track = {};
       track.id = parseInt(item.id,10);
       track.Artist = _.isString(item.Artist) ? item.Artist : "";
@@ -40,25 +53,91 @@ function loadData(data) {
       track.Time = parseInt(item.Time,10);
 
       items.push(track);
+
+      // add data to filter lists
+      addFilterListItem(ArtistList, item.Artist);
+      addFilterListItem(GenreList, item.Genre);
+      addFilterListItem(YearList, item.Year);
+
     }
   );
+  // fill filtered data storege
   filteredItems = items.slice();
+
+  // sort filter lists
+  ArtistList.sort();
+  GenreList.sort();
+  YearList.sort();
 };
 
-function setFilter(filter) {
+/**
+ * Add item to selected filter store
+ * @param {Object[]} store
+ * @param {String} item
+ */
+function addFilterListItem(store, item) {
+  if ( item && _.isString(item) && _.findIndex(store, {item:item}) == -1 )
+  {
+      store.push({id:Hash.MD5(item), item:item});
+  }
+};
+
+/**
+ * @param {String} key
+ * @param {String} value
+ */
+function addFilter(key, value) {
+  filter[key] = value;
+}
+
+/**
+ * @param {String} key
+ */
+function removeFilter(key) {
+  if ( filter.hasOwnProperty(key) )
+  {
+    delete filter[key];
+  }
+}
+
+/**
+ * Clean all filter data
+ */
+function cleanFilter() {
+  filter = {};
+  ArtistList = [];
+  GenreList= [];
+  YearList = [];
+};
+
+/**
+ * update store data when filter change
+ */
+function onChangeFilter() {
   page = 1;
   filteredItems = _.where(items, filter);
 };
 
+/**
+ * Set current page
+ * @param {Number} p
+ */
 function setPage(p) {
   page = p;
 };
 
-function setItemsPrePageCount(count) {
+/**
+ * @param {Number} count
+ */
+function setItemsPerPageCount(count) {
   page = 1;
-  itemsPrePage = count;
+  itemsPerPage = count;
 };
 
+/**
+ * Set tracklist order
+ * @param {String} target - column name
+ */
 function setOrder(target) {
   if ( orderTarget == target )
   {
@@ -104,6 +183,7 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
   },
 
   // get playlist items
+
   getItems: function() {
     var result = filteredItems.slice();
 
@@ -124,31 +204,53 @@ var TrackStore = Assign({}, EventEmitter.prototype, {
       });
     }
 
-    return result.slice((page-1)*this.getItemsPrePageCount(), page*this.getItemsPrePageCount());
+    return result.slice((page-1)*this.getItemsPerPageCount(), page*this.getItemsPerPageCount());
   },
+
+  // filters
+
+  getFilter: function(key) {
+    return filter.key;
+  },
+
+  getAllFilters: function() {
+    return filter;
+  },
+
+  getArtistOptions: function() {
+    return ArtistList;
+  },
+
+  getGenreOptions: function() {
+    return GenreList;
+  },
+
+  getYearOptions: function() {
+    return YearList;
+  },
+
+  // pagination
 
   getItemsCount: function() {
     return filteredItems.length;
   },
 
-  // pagination
+  getPagesCount: function() {
+    return Math.ceil(this.getItemsCount() / this.getItemsPerPageCount());
+  },
+
   getPage: function() {
     return page;
   },
 
-  getPagesCount: function() {
-    return Math.ceil(this.getItemsCount() / this.getItemsPrePageCount());
+  getItemsPerPageCount: function() {
+    return itemsPerPage;
   },
 
-  getItemsPrePageCount: function() {
-    return itemsPrePage;
+  getItemsPerPageList: function() {
+    return itemsPerPageList;
   },
 
-  getItemsPrePageList: function() {
-    return itemsPrePageList;
-  },
-
-  // order
   getOrderTarget: function() {
     return orderTarget;
   },
@@ -164,13 +266,22 @@ TrackStore.dispatchToken = AppDispatcher.register(function(payload){
 
       case ActionConstants.LOAD_DATA:
         loadData(action.data);
-        AppDispatcher.waitFor([FilterStore.dispatchToken]);
         TrackStore.emitChange();
         break;
 
       case ActionConstants.CHANGE_FILTER:
-        AppDispatcher.waitFor([FilterStore.dispatchToken]);
-        setFilter(FilterStore.getAllFilters());
+        var key = action.filterKey;
+        var value = action.value;
+
+        if ( !value ) {
+          removeFilter(key);
+        }
+        else {
+          addFilter(key,value);
+        }
+
+        onChangeFilter();
+
         TrackStore.emitChange();
         break;
 
@@ -187,8 +298,8 @@ TrackStore.dispatchToken = AppDispatcher.register(function(payload){
         break;
 
       case ActionConstants.CHANGE_ITEMS_PER_PAGE_COUNT:
-        if ( TrackStore.getItemsPrePageList().indexOf(action.count) != -1 ) {
-          setItemsPrePageCount(action.count);
+        if ( TrackStore.getItemsPerPageList().indexOf(action.count) != -1 ) {
+          setItemsPerPageCount(action.count);
           TrackStore.emitChange();
         }
         break;
