@@ -3,30 +3,20 @@ var Track = require('./Track');
 var TrackStore = require('../stores/TrackStore');
 var AppActions = require('../actions/AppActions');
 
-function getStateFromStore() {
-  return {
-    fieldList: TrackStore.getFieldList(),
-    target:TrackStore.getOrderTarget(),
-    order:TrackStore.getOrder()
-  };
-};
-
 var PlaylistHeader = React.createClass({
-
-  getInitialState: function() {
-    return getStateFromStore(this);
-  },
-
-  handleClick: function(item) {
-    AppActions.changeOrder(item);
+  propTypes: {
+    fieldList: React.PropTypes.array,
+    target: React.PropTypes.string,
+    order: React.PropTypes.string,
+    handleClick: React.PropTypes.func.isRequired
   },
 
   render: function() {
     var rows = [];
 
-    if ( this.state.fieldList.length )
+    if ( this.props.fieldList.length )
     {
-      rows = this.state.fieldList.map(this._renderItem);
+      rows = this.props.fieldList.map(this._renderItem);
     }
 
     return (
@@ -39,10 +29,10 @@ var PlaylistHeader = React.createClass({
   },
 
   _renderItem: function(item, index) {
-    var classes = "glyphicon pull-right " + this.getIconClass(item, this.state.order);
+    var classes = "glyphicon pull-right " + this.getIconClass(item, this.props.order);
 
     return (
-      <th key={item} onClick={this.handleClick.bind(null, item)}>
+      <th key={item} onClick={this.props.handleClick.bind(null, item)}>
           {item}
           <span className={classes} aria-hidden="true"></span>
       </th>
@@ -50,7 +40,7 @@ var PlaylistHeader = React.createClass({
   },
 
   getIconClass: function(target, order) {
-    if ( this.state.target == target )
+    if ( this.props.target == target )
     {
       switch(order)
       {
@@ -62,18 +52,6 @@ var PlaylistHeader = React.createClass({
     }
 
     return 'glyphicon-sort';
-  },
-
-  componentDidMount: function() {
-    TrackStore.addChangeListener(this._onChaged);
-  },
-
-  componentWillUnmount: function() {
-    TrackStore.removeChangeListener(this._onChaged);
-  },
-
-  _onChaged: function() {
-    this.setState(getStateFromStore());
   }
 });
 

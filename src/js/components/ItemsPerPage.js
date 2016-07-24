@@ -1,30 +1,18 @@
 var React = require('react');
-var Track = require('./Track');
 var PaginationItem = require('./PaginationItem');
 var _ = require('underscore');
-var TrackStore = require('../stores/TrackStore');
-var AppActions = require('../actions/AppActions');
-
-function getStateFromStore() {
-  return {
-    perPage: TrackStore.getItemsPrePageCount(),
-    itemsPerPageList: TrackStore.getItemsPrePageList(),
-    itemsCount: TrackStore.getItemsCount(),
-  };
-};
 
 var ItemsPerPage = React.createClass({
 
-  getInitialState: function() {
-    return getStateFromStore(this);
-  },
-
-  handleItemsCountClick: function(item) {
-    AppActions.changePageItemsCount(item);
+  propTypes: {
+    perPage: React.PropTypes.number,
+    itemsPerPageList: React.PropTypes.array,
+    itemsCount: React.PropTypes.number,
+    handleItemsCountClick: React.PropTypes.func
   },
 
   render: function() {
-    if ( !this.state.itemsPerPageList || this.state.itemsCount < _.min(this.state.itemsPerPageList) )
+    if ( !this.props.itemsPerPageList || this.props.itemsCount < _.min(this.props.itemsPerPageList) )
     {
       return null;
     }
@@ -42,24 +30,16 @@ var ItemsPerPage = React.createClass({
     var rows = [];
 
     // render items
-    this.state.itemsPerPageList.map(function(item) {
-      var pageClass = (this.state.perPage === item) ? 'active' : '';
-      rows.push(<PaginationItem key={item} itemClass={pageClass} onHandleClick={this.handleItemsCountClick.bind(null, item)} label={item} />);
+    this.props.itemsPerPageList.map(function(item) {
+      var pageClass = (this.props.perPage === item) ? 'active' : '';
+      rows.push(<PaginationItem
+                  key={item}
+                  itemClass={pageClass}
+                  onHandleClick={this.props.handleItemsCountClick.bind(null, item)}
+                  label={item} />);
     }.bind(this));
 
     return rows;
-  },
-
-  componentDidMount: function() {
-    TrackStore.addChangeListener(this._onChaged);
-  },
-
-  componentWillUnmount: function() {
-    TrackStore.removeChangeListener(this._onChaged);
-  },
-
-  _onChaged: function() {
-    this.setState(getStateFromStore());
   }
 });
 

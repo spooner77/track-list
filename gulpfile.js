@@ -1,10 +1,7 @@
 var gulp = require('gulp');
-var uglify = require('gulp-uglify');
 var source = require('vinyl-source-stream');
 var browserify = require('browserify');
 var reactify = require('reactify');
-var streamify = require('gulp-streamify');
-var clean = require('gulp-clean');
 
 gulp.task('prepare', function() {
   browserify({
